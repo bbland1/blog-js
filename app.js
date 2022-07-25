@@ -24,15 +24,35 @@ app.use(express.static("public"));
 // setting up mongoose
 mongoose.connect("mongodb://localhost:27017/blogDB");
 
+const postsSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: [true, "You need a title for your new post."]
+  },
+  content: {
+    type: String,
+    required: [true, "You didn't write anything."]
+  }
+});
+
+const Post = mongoose.model("Post", postsSchema);
+
 // getting the blog home page
-let posts = [];
 
 app.get("/", (req, res) => {
-  res.render("home", {
-    homePage: homeStartingContent,
-    posts: posts
+
+  Post.find({}, (err, posts) => {
+    if (err) {
+      console.log(err);
+      res.redirect("/")
+    } else {
+      res.render("home", {
+        homePage: homeStartingContent,
+        posts: posts
+      });
+    }
   });
-})
+});
 
 // about page of blog
 app.get("/about", (req, res) => {
@@ -55,9 +75,17 @@ app.post("/compose", (req, res) => {
     content: req.body.blogBody
   }
 
-  posts.push(post);
-  res.redirect("/");
-})
+  Post.create({
+    title: post.title,
+    content: post.content
+  }, (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.redirect("/");
+    }
+  });
+});
 
 app.get("/posts/:postTitle", (req, res) => {
   const requestedTitle = _.lowerCase(req.params.postTitle);
