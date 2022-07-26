@@ -87,22 +87,19 @@ app.post("/compose", (req, res) => {
   });
 });
 
-app.get("/posts/:postTitle", (req, res) => {
-  const requestedTitle = _.lowerCase(req.params.postTitle);
+app.get("/posts/:postId", (req, res) => {
+  const requestedId = req.params.postId;
 
-  posts.forEach((post) => {
-    const clickedTitle = _.lowerCase(post.title);
-
-    if (clickedTitle === requestedTitle) {
-      res.render("post", {
-        postTitle: post.title,
-        postContent: post.content
-      })
+  Post.findOne({_id: requestedId}, (err, foundPost) => {
+    if (err) {
+      res.send("Issue finding the post clicked.").status(404);
     }
+      res.render("post", {
+        title: foundPost.title,
+        content: foundPost.content
+      });
   });
-})
-
-
+});
 
 app.listen(port, function () {
   console.log("Server started on port 3000");
